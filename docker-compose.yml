@@ -124,8 +124,9 @@ services:
     environment:
       - HOSTNAME_MONITOR=${HOSTNAME_MONITOR}
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
       - '--web.external-url=https://${HOSTNAME_MONITOR}/blackbox/'
       - '--web.route-prefix=/blackbox'
     healthcheck:
