@@ -142,7 +142,7 @@ if [ ! -f "$ALERTMANAGER_TEMPLATE" ]; then
 fi
 
 echo "📝 Preparing Alertmanager configuration..."
-cp "$ALERTMANAGER_TEMPLATE" "$ALERTMANAGER_FINAL"
+envsubst < "$ALERTMANAGER_TEMPLATE" > "$ALERTMANAGER_FINAL"
 chmod 600 "$ALERTMANAGER_FINAL"
 # Set ownership for Alertmanager config file to match container user (nobody:65534)
 chown 65534:65534 "$ALERTMANAGER_FINAL"
