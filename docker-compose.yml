@@ -133,7 +133,8 @@ services:
       - USE_TLS=${USE_TLS}
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Remove default.conf mount as it causes issues with host.docker.internal on Linux servers
+      # - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
       # The setup.sh will copy the chosen monitoring conf to conf.d/monitoring.conf
       - ./nginx/conf.d/monitoring.conf:/etc/nginx/conf.d/monitoring.conf:ro
     # TLS secrets are optional; setup.sh will create/delete these files depending on USE_TLS
