@@ -58,6 +58,8 @@ echo "✅ Environment validation complete."
 # 3️⃣  Ensure Folder Structure
 # -----------------------------
 echo "📁 Ensuring directory structure..."
+# Clean up previous data and secrets for a fresh start
+rm -rf data secrets
 mkdir -p \
   secrets \
   data/grafana \
@@ -111,6 +113,13 @@ if [ -d "${MONITORING_CONF_FINAL}" ]; then
   rmdir "${MONITORING_CONF_FINAL}"
 elif [ -f "${MONITORING_CONF_FINAL}" ]; then
   rm "${MONITORING_CONF_FINAL}"
+fi
+
+# Ensure monitoring.conf is a file, not a directory, and remove it if it exists
+if [ -d "${MONITORING_CONF_FINAL}" ]; then
+  rmdir "${MONITORING_CONF_FINAL}" || true
+elif [ -f "${MONITORING_CONF_FINAL}" ]; then
+  rm "${MONITORING_CONF_FINAL}" || true
 fi
 
 if [ "${USE_SELF_SIGNED_TLS}" = "true" ]; then
