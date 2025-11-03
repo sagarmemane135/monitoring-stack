@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ===============================================
+# 🧭 Monitoring Stack Setup Script (with Auth)
+# ===============================================
+
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script with sudo: sudo ./setup.sh"
@@ -14,13 +18,13 @@ echo "========================================"
 echo ""
 
 # -----------------------------
-# 0️⃣  Clean up previous runs (optional, but good for development)
+# 🧹 Clean up previous runs
 # -----------------------------
 echo "🧹 Cleaning up previous Docker Compose stack..."
-sudo docker-compose down -v || true # Use || true to prevent script from exiting if no stack is running
+sudo docker-compose down -v || true
 
 # -----------------------------
-# 1️⃣  Load Environment Variables
+# 🔧 Load Environment Variables
 # -----------------------------
 if [ ! -f ".env" ]; then
   echo "❌ ERROR: .env file not found. Please create one before running this script."
@@ -28,18 +32,12 @@ if [ ! -f ".env" ]; then
 fi
 source .env
 
-# Export Alertmanager-related variables for envsubst
-export ALERT_SMTP_SMARTHOST
-export ALERT_SMTP_FROM
-export ALERT_SMTP_USER
-export ALERT_SMTP_PASS
-export ALERT_EMAIL_TO
-export ALERT_GROUP_WAIT
-export ALERT_GROUP_INTERVAL
-export ALERT_REPEAT_INTERVAL
+# Export alert-related vars for envsubst
+export ALERT_SMTP_SMARTHOST ALERT_SMTP_FROM ALERT_SMTP_USER ALERT_SMTP_PASS
+export ALERT_EMAIL_TO ALERT_GROUP_WAIT ALERT_GROUP_INTERVAL ALERT_REPEAT_INTERVAL
 
 # -----------------------------
-# 2️⃣  Verify Required Variables
+# ✅ Validate Required Variables
 # -----------------------------
 echo "🔍 Validating environment variables..."
 
@@ -54,6 +52,8 @@ required_vars=(
   GF_SECURITY_ADMIN_PASSWORD
   LISTEN_PORT
   USE_SELF_SIGNED_TLS
+  BASIC_AUTH_USER
+  BASIC_AUTH_PASSWORD
 )
 
 for var in "${required_vars[@]}"; do
@@ -65,28 +65,24 @@ done
 echo "✅ Environment validation complete."
 
 # -----------------------------
-# 3️⃣  Ensure Folder Structure
+# 📁 Prepare Directory Structure
 # -----------------------------
 echo "📁 Ensuring directory structure..."
-# Clean up previous data and secrets for a fresh start
-rm -rf data secrets
+rm -rf data secrets nginx/auth
 mkdir -p \
   secrets \
+  nginx/auth \
   data/grafana \
   data/prometheus \
   data/alertmanager
 
-# Set ownership for persistent data volumes
-# Grafana runs as user 472
+# Set ownership for data
 chown -R 472:472 data/grafana
-# Prometheus and Alertmanager often run as nobody (65534)
 chown -R 65534:65534 data/prometheus data/alertmanager
-
-# Protect sensitive files
 chmod 700 secrets || true
 
 # -----------------------------
-# 4️⃣  Handle TLS Certificates
+# 🔐 Generate TLS Certificates
 # -----------------------------
 if [ "${USE_SELF_SIGNED_TLS}" = "true" ]; then
   if [ ! -f "${TLS_CRT_PATH}" ] || [ ! -f "${TLS_KEY_PATH}" ]; then
@@ -103,34 +99,37 @@ if [ "${USE_SELF_SIGNED_TLS}" = "true" ]; then
 else
   echo "🔒 Using provided TLS certificates..."
   if [ ! -f "${TLS_CRT_PATH}" ] || [ ! -f "${TLS_KEY_PATH}" ]; then
-    echo "❌ TLS certificates not found at:"
-    echo "   - ${TLS_CRT_PATH}"
-    echo "   - ${TLS_KEY_PATH}"
+    echo "❌ TLS certificates not found:"
+    echo "   ${TLS_CRT_PATH}"
+    echo "   ${TLS_KEY_PATH}"
     echo "   Please add valid certs or set USE_SELF_SIGNED_TLS=true"
     exit 1
   fi
 fi
 
 # -----------------------------
-# 5️⃣  Prepare Nginx Monitoring Config
+# 🔑 Create Basic Auth File
+# -----------------------------
+echo "🔑 Configuring Basic Authentication..."
+AUTH_FILE="./nginx/auth/monitoring.htpasswd"
+
+# Install apache2-utils if missing (for htpasswd command)
+if ! command -v htpasswd &> /dev/null; then
+  echo "📦 Installing apache2-utils..."
+  apt-get update -y >/dev/null
+  apt-get install -y apache2-utils >/dev/null
+fi
+
+htpasswd -bc "${AUTH_FILE}" "${BASIC_AUTH_USER}" "${BASIC_AUTH_PASSWORD}"
+chmod 640 "${AUTH_FILE}"
+echo "✅ Basic auth file created at ${AUTH_FILE}"
+
+# -----------------------------
+# ⚙️ Configure Nginx
 # -----------------------------
 echo "⚙️ Preparing Nginx monitoring configuration..."
 MONITORING_CONF_DIR="./nginx/conf.d"
 MONITORING_CONF_FINAL="${MONITORING_CONF_DIR}/monitoring.conf"
-
-# Ensure monitoring.conf is a file, not a directory
-if [ -d "${MONITORING_CONF_FINAL}" ]; then
-  rmdir "${MONITORING_CONF_FINAL}"
-elif [ -f "${MONITORING_CONF_FINAL}" ]; then
-  rm "${MONITORING_CONF_FINAL}"
-fi
-
-# Ensure monitoring.conf is a file, not a directory, and remove it if it exists
-if [ -d "${MONITORING_CONF_FINAL}" ]; then
-  rmdir "${MONITORING_CONF_FINAL}" || true
-elif [ -f "${MONITORING_CONF_FINAL}" ]; then
-  rm "${MONITORING_CONF_FINAL}" || true
-fi
 
 if [ "${USE_SELF_SIGNED_TLS}" = "true" ]; then
   cp "${MONITORING_CONF_DIR}/monitoring.tls.conf" "${MONITORING_CONF_FINAL}"
@@ -141,7 +140,7 @@ else
 fi
 
 # -----------------------------
-# 6️⃣  Prepare Alertmanager Config
+# 📬 Configure Alertmanager
 # -----------------------------
 ALERTMANAGER_TEMPLATE="./alertmanager/alertmanager.yml.template"
 ALERTMANAGER_FINAL="./alertmanager/alertmanager.yml"
@@ -154,18 +153,17 @@ fi
 echo "📝 Preparing Alertmanager configuration..."
 envsubst < "$ALERTMANAGER_TEMPLATE" > "$ALERTMANAGER_FINAL"
 chmod 600 "$ALERTMANAGER_FINAL"
-# Set ownership for Alertmanager config file to match container user (nobody:65534)
 chown 65534:65534 "$ALERTMANAGER_FINAL"
 
 # -----------------------------
-# 6️⃣  Start Docker Stack
+# 🐳 Start Docker Stack
 # -----------------------------
 echo ""
 echo "🐳 Starting Docker Compose stack..."
 sudo docker-compose up -d --build
 
 # -----------------------------
-# 7️⃣  Post-Setup Information
+# 🎉 Done!
 # -----------------------------
 echo ""
 echo "========================================"
@@ -174,5 +172,9 @@ echo "----------------------------------------"
 echo " 🌐 Grafana Dashboard: https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/grafana"
 echo " 📈 Prometheus:        https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/prometheus"
 echo " 🚨 Alertmanager:      https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/alertmanager"
+echo " 🧩 Blackbox Exporter: https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/blackbox"
+echo "----------------------------------------"
+echo " 🔒 Basic Auth User:   ${BASIC_AUTH_USER}"
+echo " 🔑 Basic Auth Pass:   ${BASIC_AUTH_PASSWORD}"
 echo "========================================"
 echo ""
