@@ -14,6 +14,12 @@ echo "========================================"
 echo ""
 
 # -----------------------------
+# 0️⃣  Clean up previous runs (optional, but good for development)
+# -----------------------------
+echo "🧹 Cleaning up previous Docker Compose stack..."
+sudo docker-compose down -v || true # Use || true to prevent script from exiting if no stack is running
+
+# -----------------------------
 # 1️⃣  Load Environment Variables
 # -----------------------------
 if [ ! -f ".env" ]; then
@@ -129,6 +135,8 @@ fi
 echo "📝 Preparing Alertmanager configuration..."
 cp "$ALERTMANAGER_TEMPLATE" "$ALERTMANAGER_FINAL"
 chmod 600 "$ALERTMANAGER_FINAL"
+# Set ownership for Alertmanager config file to match container user (nobody:65534)
+chown 65534:65534 "$ALERTMANAGER_FINAL"
 
 # -----------------------------
 # 6️⃣  Start Docker Stack
