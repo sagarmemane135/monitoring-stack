@@ -28,6 +28,16 @@ if [ ! -f ".env" ]; then
 fi
 source .env
 
+# Export Alertmanager-related variables for envsubst
+export ALERT_SMTP_SMARTHOST
+export ALERT_SMTP_FROM
+export ALERT_SMTP_USER
+export ALERT_SMTP_PASS
+export ALERT_EMAIL_TO
+export ALERT_GROUP_WAIT
+export ALERT_GROUP_INTERVAL
+export ALERT_REPEAT_INTERVAL
+
 # -----------------------------
 # 2️⃣  Verify Required Variables
 # -----------------------------
