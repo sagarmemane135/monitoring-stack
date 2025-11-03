@@ -3,26 +3,31 @@ global:
   evaluation_interval: 30s
 
 scrape_configs:
+  # Prometheus itself
   - job_name: prometheus
     static_configs:
       - targets: ['prometheus:9090']
 
+  # Node Exporter (runs on host network)
   - job_name: node_exporter
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['host.docker.internal:9100']  # works on most systems
+    # If 'host.docker.internal' doesn’t resolve, use the host's private IP (e.g. 172.17.0.1)
 
+  # cAdvisor metrics
   - job_name: cadvisor
     static_configs:
       - targets: ['cadvisor:8080']
 
+  # Blackbox exporter — probes HTTP, TCP, ICMP
   - job_name: blackbox
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://prometheus:9090/prometheus/-/healthy
-          - http://grafana:3000/grafana/api/health
+          - http://prometheus:9090/-/healthy
+          - http://grafana:3000/api/health
           - http://cadvisor:8080/metrics
     relabel_configs:
       - source_labels: [__address__]
