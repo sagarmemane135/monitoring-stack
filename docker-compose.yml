@@ -17,7 +17,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.enable-lifecycle'
-      - '--web.external-url=https://${HOSTNAME_MONITOR}/prometheus/'
+      - '--web.external-url=https://${HOSTNAME_MONITOR}/prometheus'
       - '--web.route-prefix=/prometheus'
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready || exit 1"]
