@@ -1,5 +1,36 @@
+# Environment and secrets
 .env
+.env.local
+.env.*.local
+
+# Generated configuration files
+alertmanager/alertmanager.yml
+
+# Data directories
 data/*
+!data/.gitkeep
+
+# Secrets directory (keep structure)
 secrets/*
 !secrets/.gitkeep
-alertmanager/alertmanager.yml
+
+# Backup directories
+backups/*
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
