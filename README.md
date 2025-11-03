@@ -3,20 +3,24 @@
 
 # 🧠 Linux Server Monitoring Stack (Docker-Based)
 
-A **complete, production-ready monitoring stack** for Linux servers running multiple applications.
-Built with **Prometheus, Alertmanager, Grafana, Node Exporter, cAdvisor, and Nginx** — all containerized and fully integrated.
+A **complete, production-ready, enterprise-grade monitoring stack** for Linux servers running multiple applications.
+Built with **Prometheus, Alertmanager, Grafana, Loki, Node Exporter, cAdvisor, and Nginx** — all containerized and fully integrated with security hardening and SOC features.
 
 ---
 
 ## 🚀 Features
 
 * **Full monitoring pipeline** (Prometheus → Alertmanager → Grafana)
-* **Nginx reverse proxy** exposing only port `443`
+* **Log aggregation** with Loki and Promtail (unified logs + metrics)
+* **Security hardening** with security headers, TLS, and security alerts
+* **SOC features** with security dashboards and audit logging
+* **Nginx reverse proxy** exposing only port `443` with security headers
 * **Dynamic app routing** via `default.conf` (user apps)
 * **Pre-configured monitoring routes** via `monitoring.conf`
-* **Email alerts** via Gmail or any SMTP provider (using `.env` variables)
-* **Persistent storage** (data saved in current folder)
+* **Multi-channel alerts** via Email (Slack, PagerDuty, Discord, Teams ready)
+* **Persistent storage** with automated backup scripts
 * **Optional TLS** (self-signed or custom certificates)
+* **Security monitoring** with certificate expiration, process anomalies, and network alerts
 * **Zero downtime reloads**
 * **Everything managed with Docker Compose**
 
@@ -35,9 +39,22 @@ project-root/
 │       └── monitoring.conf     # monitoring routes (do not edit)
 ├── prometheus/
 │   ├── prometheus.yml
-│   └── rules.yml
+│   ├── rules.yml
+│   └── security-rules.yml          # NEW: Security alerts
 ├── alertmanager/
-│   └── alertmanager.yml
+│   └── alertmanager.yml.template
+├── loki/
+│   └── loki-config.yml             # NEW: Loki configuration
+├── promtail/
+│   └── promtail-config.yml         # NEW: Log shipper config
+├── scripts/
+│   ├── backup.sh                   # NEW: Backup automation
+│   ├── restore.sh                  # NEW: Restore automation
+│   └── health-check.sh             # NEW: Health validation
+├── docs/
+│   ├── SECURITY.md                 # NEW: Security guide
+│   ├── BACKUP_RESTORE.md          # NEW: Backup procedures
+│   └── ALERTING.md                # NEW: Alerting guide
 ├── data/
 │   ├── grafana/
 │   ├── prometheus/
@@ -105,6 +122,8 @@ cp /etc/letsencrypt/live/yourdomain/privkey.pem secrets/tls.key
 | **Prometheus**    | 9090 | Time-series metrics collection          | `./data/prometheus`   |
 | **Grafana**       | 3000 | Dashboards and visualization            | `./data/grafana`      |
 | **Alertmanager**  | 9093 | Alert routing and notifications         | `./data/alertmanager` |
+| **Loki**          | 3100 | Log aggregation                         | `./data/loki`         |
+| **Promtail**      | 9080 | Log shipper                             | none                  |
 | **Node Exporter** | 9100 | Host-level metrics                      | none                  |
 | **cAdvisor**      | 8080 | Container metrics                       | none                  |
 
@@ -175,6 +194,7 @@ If `USE_SELF_SIGNED_TLS=true`, the script will generate certs automatically and 
 | Grafana      | `https://monitor.example.com/grafana/`      |
 | Prometheus   | `https://monitor.example.com/prometheus/`   |
 | Alertmanager | `https://monitor.example.com/alertmanager/` |
+| Loki         | `https://monitor.example.com/loki`          |
 
 ### 5️⃣ Stop or restart
 
@@ -185,13 +205,38 @@ docker-compose up -d
 
 ---
 
+## 🔐 Security Features
+
+* **Security Headers**: HSTS, X-Frame-Options, CSP, and more configured in Nginx
+* **Security Alerts**: Certificate expiration, failed requests, process anomalies, network alerts
+* **Security Dashboards**: Pre-built SOC dashboard for security analysts
+* **Audit Logging**: Comprehensive logging of all system activities
+* **TLS Hardening**: TLS 1.3 only, strong ciphers, certificate monitoring
+
+## 📝 Log Aggregation
+
+* **Loki Integration**: Centralized log aggregation (fully configured, no setup needed)
+* **Promtail**: Automatic log collection from Docker containers, system logs, and auth logs
+* **Unified Queries**: Query logs and metrics together in Grafana
+* **Log Retention**: Configurable retention policies (default: 30 days)
+* **Security Log Monitoring**: Failed logins, sudo attempts, SSH access automatically collected
+* **Zero Configuration**: Works out of the box - all log sources pre-configured
+
+## 🚨 Enhanced Alerting
+
+* **Security Alerts**: Certificate expiration, network anomalies, container security
+* **Multi-Channel Ready**: Email configured, Slack/PagerDuty/Discord ready
+* **Alert Routing**: Route alerts by severity and service
+* **Self-Monitoring**: Alerts when monitoring stack components fail
+* **Alert Inhibition**: Prevents alert storms
+
 ## 🧩 Extending the Stack
 
 | Add-on                         | Purpose                 | How                                    |
 | ------------------------------ | ----------------------- | -------------------------------------- |
-| **Slack / Telegram alerts**    | Receive alerts via chat | Extend `alertmanager.yml`              |
-| **Loki / Promtail**            | Log aggregation         | Add to `docker-compose.yml`            |
-| **Let’s Encrypt auto-renewal** | Real cert management    | Add `certbot` container or Traefik     |
+| **Slack / Discord alerts**    | Receive alerts via chat | Extend `alertmanager.yml` (see `docs/ALERTING.md`) |
+| **PagerDuty / Opsgenie**      | On-call management      | Configure in Alertmanager (see `docs/ALERTING.md`) |
+| **Let's Encrypt auto-renewal** | Real cert management    | Add `certbot` container or Traefik     |
 | **Multi-server metrics**       | Central monitoring      | Add scrape targets in `prometheus.yml` |
 
 ---
@@ -205,6 +250,9 @@ docker-compose up -d
 | Reload Nginx config        | `docker exec nginx-proxy nginx -s reload`     |
 | View logs                  | `docker-compose logs -f`                      |
 | Update images              | `docker-compose pull && docker-compose up -d` |
+| Backup stack              | `./scripts/backup.sh`                         |
+| Restore from backup        | `./scripts/restore.sh <backup-name>`          |
+| Health check               | `./scripts/health-check.sh`                   |
 
 ---
 
@@ -220,12 +268,40 @@ docker-compose up -d
 
 ---
 
+## 📚 Documentation
+
+* **[Security Guide](docs/SECURITY.md)**: Security best practices and hardening
+* **[Backup & Restore](docs/BACKUP_RESTORE.md)**: Backup automation and restore procedures
+* **[Alerting Guide](docs/ALERTING.md)**: Alert configuration and customization
+
+## 📊 Pre-built Dashboards
+
+The stack includes **8 comprehensive dashboards** ready to use:
+
+| Dashboard | Description |
+|-----------|-------------|
+| **Monitoring Stack Overview** | Complete system overview with CPU, memory, disk, and containers |
+| **Linux Server Dashboard** | Detailed Linux server metrics - CPU, memory, disk, network, processes |
+| **Container Dashboard** | Docker container performance, resource usage, and I/O |
+| **Network Dashboard** | Network traffic, connections, errors, and TCP states |
+| **Storage Dashboard** | Disk usage, I/O performance, inodes, and filesystem details |
+| **Security Dashboard** | SOC-focused security metrics, alerts, and threat detection |
+| **Alert Overview Dashboard** | All active alerts, alert history, and categorization |
+| **Executive Summary** | High-level business metrics and system health at a glance |
+| **Logs Dashboard** | Centralized log viewer with filtering, search, and statistics |
+
+All dashboards are **pre-configured** and **automatically loaded** - no configuration needed!
+
 ## 🏁 Summary
 
-✅ Production-ready monitoring setup
-✅ All metrics and dashboards behind a single HTTPS endpoint
-✅ Self-healing and persistent
-✅ Modular — easy to extend with logs, alerts, or app routing
+✅ Production-ready, enterprise-grade monitoring setup
+✅ Security hardened with security headers and security alerts
+✅ Log aggregation with Loki and Promtail (zero configuration needed)
+✅ SOC-ready with security dashboards and audit logging
+✅ 8 pre-built comprehensive dashboards
+✅ All metrics, logs, and dashboards behind a single HTTPS endpoint
+✅ Self-healing and persistent with automated backups
+✅ Modular — easy to extend with additional features
 
 ---
 

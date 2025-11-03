@@ -1,0 +1,423 @@
+{
+  "id": null,
+  "title": "Executive Summary Dashboard",
+  "tags": ["executive", "summary", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "System Health Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "gauge",
+      "title": "Overall System Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(count(up == 1) / count(up)) * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 70 },
+              { "color": "yellow", "value": 85 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Active Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "System Uptime",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "time() - node_boot_time_seconds",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations"
+        }
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Resource Utilization",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 10 }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 10 }
+    },
+    {
+      "type": "gauge",
+      "title": "Disk Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\", mountpoint=\"/\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\", mountpoint=\"/\"})) * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 10 }
+    },
+    {
+      "type": "gauge",
+      "title": "Network Utilization",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(rate(node_network_receive_bytes_total{device!~\"lo|docker.*\"}[5m]) + rate(node_network_transmit_bytes_total{device!~\"lo|docker.*\"}[5m])) / 1000000000 * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 10 }
+    },
+    {
+      "type": "row",
+      "title": "Service Status",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "type": "stat",
+      "title": "Prometheus",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"prometheus\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 19 }
+    },
+    {
+      "type": "stat",
+      "title": "Grafana",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{job=\"blackbox\", instance=~\".*grafana.*\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 19 }
+    },
+    {
+      "type": "stat",
+      "title": "Alertmanager",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=~\".*alertmanager.*\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 19 }
+    },
+    {
+      "type": "stat",
+      "title": "Loki",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=~\".*loki.*\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 19 }
+    },
+    {
+      "type": "stat",
+      "title": "Node Exporter",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"node_exporter\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 19 }
+    },
+    {
+      "type": "stat",
+      "title": "cAdvisor",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"cadvisor\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": { "text": "UP", "color": "green" },
+                "0": { "text": "DOWN", "color": "red" }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 19 }
+    },
+    {
+      "type": "row",
+      "title": "Container Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Containers",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(container_last_seen{name!=\"\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 24 }
+    },
+    {
+      "type": "stat",
+      "title": "Running Containers",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(container_last_seen{name!=\"\", container_status=\"running\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Resource Usage Trend",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU %"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory %"
+        },
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\", mountpoint=\"/\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\", mountpoint=\"/\"})) * 100",
+          "legendFormat": "Disk %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    }
+  ]
+}
+

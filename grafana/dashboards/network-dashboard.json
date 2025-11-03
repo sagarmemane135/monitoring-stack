@@ -1,0 +1,272 @@
+{
+  "id": null,
+  "title": "Network Dashboard",
+  "tags": ["network", "system"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Network Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Active TCP Connections",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_CurrEstab",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Network Interfaces",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(node_network_up)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "TCP Listen Connections",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_Listen",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "TCP Established",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_CurrEstab",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Network Traffic",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Traffic by Interface",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}} RX"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}} TX"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 }
+    },
+    {
+      "type": "row",
+      "title": "Network Packets",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Packets Received",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_packets_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Packets Transmitted",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_transmit_packets_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 }
+    },
+    {
+      "type": "row",
+      "title": "Network Errors",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Receive Errors",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_errs_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "/.*/" },
+            "properties": [
+              { "id": "color", "value": { "mode": "continuous-GrYlRd" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Transmit Errors",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_transmit_errs_total{device!~\"lo|docker.*|veth.*|br-.*\"}[5m])",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "/.*/" },
+            "properties": [
+              { "id": "color", "value": { "mode": "continuous-GrYlRd" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "row",
+      "title": "TCP Connection States",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+    },
+    {
+      "type": "timeseries",
+      "title": "TCP States",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_Estab",
+          "legendFormat": "Established"
+        },
+        {
+          "expr": "node_netstat_Tcp_SynSent",
+          "legendFormat": "SynSent"
+        },
+        {
+          "expr": "node_netstat_Tcp_SynRecv",
+          "legendFormat": "SynRecv"
+        },
+        {
+          "expr": "node_netstat_Tcp_FinWait1",
+          "legendFormat": "FinWait1"
+        },
+        {
+          "expr": "node_netstat_Tcp_FinWait2",
+          "legendFormat": "FinWait2"
+        },
+        {
+          "expr": "node_netstat_Tcp_TimeWait",
+          "legendFormat": "TimeWait"
+        },
+        {
+          "expr": "node_netstat_Tcp_Close",
+          "legendFormat": "Close"
+        },
+        {
+          "expr": "node_netstat_Tcp_CloseWait",
+          "legendFormat": "CloseWait"
+        },
+        {
+          "expr": "node_netstat_Tcp_LastAck",
+          "legendFormat": "LastAck"
+        },
+        {
+          "expr": "node_netstat_Tcp_Listen",
+          "legendFormat": "Listen"
+        },
+        {
+          "expr": "node_netstat_Tcp_Closing",
+          "legendFormat": "Closing"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 }
+    }
+  ]
+}
+

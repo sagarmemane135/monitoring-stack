@@ -1,0 +1,287 @@
+{
+  "id": null,
+  "title": "Security Operations Dashboard",
+  "tags": ["security", "soc", "infrastructure"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Security Alerts Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Active Security Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=\"security\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Certificate Expiration Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertname=~\"Certificate.*\", alertstate=\"firing\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Failed HTTP Requests (5m)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(probe_http_status_code{code=~\"4..|5..\"}[5m])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Network Connections",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_CurrEstab"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Security Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Security Alerts Timeline",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count_over_time(ALERTS{alertstate=\"firing\", category=\"security\"}[1m])",
+          "legendFormat": "{{alertname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Process Count",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_procs_total",
+          "legendFormat": "Processes"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "orange", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Connection Rate",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_netstat_Tcp_CurrEstab[5m])",
+          "legendFormat": "Connections/sec"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "type": "timeseries",
+      "title": "I/O Wait Time",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_cpu_seconds_total{mode=\"iowait\"}[5m]) * 100",
+          "legendFormat": "I/O Wait %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 70 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    },
+    {
+      "type": "row",
+      "title": "Container Security",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 }
+    },
+    {
+      "type": "table",
+      "title": "Containers Running as Root",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "container_spec_memory_limit_bytes{user=~\"root|0\", name!=\"\"}",
+          "format": "table",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "list"
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Restarts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "changes(container_last_seen[15m])",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 }
+    },
+    {
+      "type": "row",
+      "title": "Certificate Status",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 }
+    },
+    {
+      "type": "table",
+      "title": "Certificate Expiration",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(probe_ssl_earliest_cert_expiry - time()) / 86400",
+          "format": "table",
+          "legendFormat": "Days until expiration"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "custom": {
+            "displayMode": "list"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 30 },
+              { "color": "yellow", "value": 60 },
+              { "color": "green", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 34 }
+    }
+  ]
+}
+

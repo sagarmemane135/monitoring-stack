@@ -1,0 +1,130 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs - read directly from Docker log files
+  - job_name: docker-containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker-containers
+          host: localhost
+          __path__: /var/lib/docker/containers/*/*-json.log
+    pipeline_stages:
+      # Parse Docker JSON log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+      # Extract timestamp if available
+      - regex:
+          expression: '(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z)'
+          source: output
+      - timestamp:
+          format: RFC3339Nano
+          source: timestamp
+          fallback_formats:
+            - RFC3339
+      # Extract log level if available
+      - regex:
+          expression: '(?i)(?P<level>(error|warn|warning|info|debug|trace|fatal|panic))'
+          source: output
+      # Extract container ID from path
+      - regex:
+          expression: '/var/lib/docker/containers/(?P<container_id>[^/]+)/'
+          source: __path__
+      # Add container labels from Docker (if accessible)
+      - labels:
+          container_id:
+          logstream:
+          level:
+      # Output the log message
+      - output:
+          source: output
+
+  # System logs from /var/log/syslog (if accessible)
+  - job_name: system-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system-logs
+          host: localhost
+          __path__: /var/log/syslog
+    pipeline_stages:
+      # Parse syslog format
+      - regex:
+          expression: '(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+(?P<service>\S+)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)'
+      - labels:
+          hostname:
+          service:
+          pid:
+      - timestamp:
+          format: 'Jan 2 15:04:05'
+          source: timestamp
+          fallback_formats:
+            - 'Jan  2 15:04:05'
+      - output:
+          source: message
+
+  # Authentication logs (if accessible)
+  - job_name: auth-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: auth-logs
+          host: localhost
+          __path__: /var/log/auth.log
+    pipeline_stages:
+      # Parse auth.log format
+      - regex:
+          expression: '(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+(?P<service>\S+)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)'
+      - labels:
+          hostname:
+          service:
+          pid:
+      # Extract authentication events
+      - regex:
+          expression: '(?i)(?P<auth_event>(failed|successful|invalid|denied|accepted|rejected))'
+          source: message
+      - labels:
+          auth_event:
+      - timestamp:
+          format: 'Jan 2 15:04:05'
+          source: timestamp
+          fallback_formats:
+            - 'Jan  2 15:04:05'
+      - output:
+          source: message
+
+  # Kernel logs (if accessible via journald or /var/log/kern.log)
+  - job_name: kernel-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: kernel-logs
+          host: localhost
+          __path__: /var/log/kern.log
+    pipeline_stages:
+      - regex:
+          expression: '(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+kernel:\s+(?P<message>.*)'
+      - labels:
+          hostname:
+      - timestamp:
+          format: 'Jan 2 15:04:05'
+          source: timestamp
+          fallback_formats:
+            - 'Jan  2 15:04:05'
+      - output:
+          source: message

@@ -74,7 +74,8 @@ mkdir -p \
   nginx/auth \
   data/grafana \
   data/prometheus \
-  data/alertmanager
+  data/alertmanager \
+  data/loki
 
 # Set ownership for data
 chown -R 472:472 data/grafana
@@ -177,6 +178,7 @@ echo " 🌐 Grafana Dashboard: https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/grafan
 echo " 📈 Prometheus:        https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/prometheus"
 echo " 🚨 Alertmanager:      https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/alertmanager"
 echo " 🧩 Blackbox Exporter: https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/blackbox"
+echo " 📝 Loki:              https://${HOSTNAME_MONITOR}:${LISTEN_PORT}/loki"
 echo "----------------------------------------"
 echo " 🔒 Basic Auth User:   ${BASIC_AUTH_USER}"
 echo " 🔑 Basic Auth Pass:   ${BASIC_AUTH_PASSWORD}"

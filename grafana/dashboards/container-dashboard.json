@@ -1,0 +1,256 @@
+{
+  "id": null,
+  "title": "Container Dashboard",
+  "tags": ["docker", "container", "system"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Container Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Containers",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(container_last_seen{name!=\"\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Running Containers",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(container_last_seen{name!=\"\", container_status=\"running\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Total CPU Cores Allocated",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(container_spec_cpu_quota{name!=\"\"}) / sum(container_spec_cpu_period{name!=\"\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Memory Allocated",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(container_spec_memory_limit_bytes{name!=\"\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Container CPU Usage",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU Usage by Container",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 }
+    },
+    {
+      "type": "row",
+      "title": "Container Memory Usage",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage by Container",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{name!=\"\"} / 1024 / 1024",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage %",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(container_memory_usage_bytes{name!=\"\"} / container_spec_memory_limit_bytes{name!=\"\"}) * 100",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 }
+    },
+    {
+      "type": "row",
+      "title": "Container I/O",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network I/O by Container",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_network_receive_bytes_total{name!=\"\"}[5m])",
+          "legendFormat": "{{name}} RX"
+        },
+        {
+          "expr": "rate(container_network_transmit_bytes_total{name!=\"\"}[5m])",
+          "legendFormat": "{{name}} TX"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O by Container",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_fs_reads_bytes_total{name!=\"\"}[5m])",
+          "legendFormat": "{{name}} Read"
+        },
+        {
+          "expr": "rate(container_fs_writes_bytes_total{name!=\"\"}[5m])",
+          "legendFormat": "{{name}} Write"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "row",
+      "title": "Container Status",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+    },
+    {
+      "type": "table",
+      "title": "Container Details",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "container_last_seen{name!=\"\"}",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "list"
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Restarts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "changes(container_last_seen{name!=\"\"}[15m])",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 }
+    }
+  ]
+}
+

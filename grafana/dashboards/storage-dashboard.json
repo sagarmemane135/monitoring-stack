@@ -1,0 +1,258 @@
+{
+  "id": null,
+  "title": "Storage Dashboard",
+  "tags": ["storage", "disk", "system"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Storage Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Filesystems",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Disk Space",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Used Disk Space",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Available Disk Space",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Disk Usage by Filesystem",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Usage (Bytes)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"}",
+          "legendFormat": "{{mountpoint}} Used"
+        },
+        {
+          "expr": "node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"}",
+          "legendFormat": "{{mountpoint}} Available"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Usage (%)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})) * 100",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
+    },
+    {
+      "type": "row",
+      "title": "Disk I/O Performance",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Read/Write Bytes",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total[5m])",
+          "legendFormat": "{{device}} Read"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total[5m])",
+          "legendFormat": "{{device}} Write"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Read/Write IOPS",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_disk_reads_completed_total[5m])",
+          "legendFormat": "{{device}} Read IOPS"
+        },
+        {
+          "expr": "rate(node_disk_writes_completed_total[5m])",
+          "legendFormat": "{{device}} Write IOPS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "iops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 }
+    },
+    {
+      "type": "row",
+      "title": "Disk I/O Time",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Average I/O Time",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_disk_io_time_seconds_total[5m]) * 100",
+          "legendFormat": "{{device}} Read Time"
+        },
+        {
+          "expr": "rate(node_disk_write_time_seconds_total[5m]) * 100",
+          "legendFormat": "{{device}} Write Time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O Queue",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_disk_io_now",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "row",
+      "title": "Disk Inodes",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Inode Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(1 - (node_filesystem_files_free{fstype!~\"tmpfs|overlay\"} / node_filesystem_files{fstype!~\"tmpfs|overlay\"})) * 100",
+          "legendFormat": "{{mountpoint}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 }
+    }
+  ]
+}
+

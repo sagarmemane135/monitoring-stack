@@ -1,0 +1,355 @@
+{
+  "id": null,
+  "title": "Linux Server Dashboard",
+  "tags": ["linux", "server", "system"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Server Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "time() - node_boot_time_seconds",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "CPU Cores",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(node_cpu_seconds_total) by (mode)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Memory",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Disk",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "CPU Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU Usage by Mode",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Used"
+        },
+        {
+          "expr": "avg(irate(node_cpu_seconds_total{mode=\"user\"}[5m])) * 100",
+          "legendFormat": "User"
+        },
+        {
+          "expr": "avg(irate(node_cpu_seconds_total{mode=\"system\"}[5m])) * 100",
+          "legendFormat": "System"
+        },
+        {
+          "expr": "avg(irate(node_cpu_seconds_total{mode=\"iowait\"}[5m])) * 100",
+          "legendFormat": "I/O Wait"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Load Average",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_load1",
+          "legendFormat": "1m"
+        },
+        {
+          "expr": "node_load5",
+          "legendFormat": "5m"
+        },
+        {
+          "expr": "node_load15",
+          "legendFormat": "15m"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
+    },
+    {
+      "type": "row",
+      "title": "Memory Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "legendFormat": "Used"
+        },
+        {
+          "expr": "node_memory_MemAvailable_bytes",
+          "legendFormat": "Available"
+        },
+        {
+          "expr": "node_memory_Buffers_bytes",
+          "legendFormat": "Buffers"
+        },
+        {
+          "expr": "node_memory_Cached_bytes",
+          "legendFormat": "Cached"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Usage %",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 }
+    },
+    {
+      "type": "row",
+      "title": "Disk Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Usage by Filesystem",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"})",
+          "legendFormat": "{{mountpoint}} Used"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total[5m])",
+          "legendFormat": "{{device}} Read"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total[5m])",
+          "legendFormat": "{{device}} Write"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "row",
+      "title": "Network Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Traffic",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total[5m])",
+          "legendFormat": "{{device}} Receive"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total[5m])",
+          "legendFormat": "{{device}} Transmit"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 }
+    },
+    {
+      "type": "row",
+      "title": "System Processes",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Processes",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_procs_total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 42 }
+    },
+    {
+      "type": "stat",
+      "title": "Running Processes",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_procs_running"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 42 }
+    },
+    {
+      "type": "stat",
+      "title": "Blocked Processes",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_procs_blocked"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 42 }
+    },
+    {
+      "type": "stat",
+      "title": "Network Connections",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "node_netstat_Tcp_CurrEstab"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 42 }
+    }
+  ]
+}
+

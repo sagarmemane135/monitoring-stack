@@ -1,0 +1,165 @@
+groups:
+  - name: security_alerts
+    interval: 30s
+    rules:
+      # Certificate Expiration Alerts
+      - alert: CertificateExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Certificate expiring soon on {{ $labels.instance }}"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value }} days."
+
+      - alert: CertificateExpired
+        expr: (probe_ssl_earliest_cert_expiry - time()) <= 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Certificate expired on {{ $labels.instance }}"
+          description: "Certificate for {{ $labels.instance }} has expired."
+
+      # High number of failed HTTP requests (potential attack)
+      - alert: HighFailedHTTPRequests
+        expr: rate(probe_http_status_code{code=~"4..|5.."}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of failed HTTP requests on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} is experiencing {{ $value }} failed requests per second."
+
+      # Unusual process activity (high process count)
+      - alert: HighProcessCount
+        expr: node_procs_total > 500
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Unusually high process count on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has {{ $value }} running processes, which is above normal."
+
+      # Network anomaly - high connection rate
+      - alert: HighNetworkConnections
+        expr: node_netstat_Tcp_CurrEstab > 1000
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High number of network connections on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has {{ $value }} active TCP connections."
+
+      # Container security events
+      - alert: ContainerRunningAsRoot
+        expr: container_spec_memory_limit_bytes{name!=""} and container_spec_memory_limit_bytes{name!="", user=~"root|0"}
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Container running as root on {{ $labels.instance }}"
+          description: "Container {{ $labels.name }} is running as root user, which is a security risk."
+
+      # Unusual memory growth (potential memory leak or attack)
+      - alert: UnusualMemoryGrowth
+        expr: rate(node_memory_MemAvailable_bytes[5m]) < -100000000
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Unusual memory consumption on {{ $labels.instance }}"
+          description: "Memory is decreasing at {{ $value }} bytes/second on {{ $labels.instance }}."
+
+      # High CPU wait time (potential I/O attack or resource exhaustion)
+      - alert: HighIOWait
+        expr: rate(node_cpu_seconds_total{mode="iowait"}[5m]) * 100 > 50
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High I/O wait time on {{ $labels.instance }}"
+          description: "I/O wait time is {{ $value }}% on {{ $labels.instance }}, indicating potential disk/network issues or attack."
+
+  - name: monitoring_stack_alerts
+    interval: 30s
+    rules:
+      # Monitor the monitoring stack itself
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+        annotations:
+          summary: "Prometheus is down"
+          description: "Prometheus monitoring instance has been down for more than 2 minutes."
+
+      - alert: AlertmanagerDown
+        expr: up{job=~".*alertmanager.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+        annotations:
+          summary: "Alertmanager is down"
+          description: "Alertmanager instance has been down for more than 2 minutes."
+
+      - alert: GrafanaDown
+        expr: up{job=~".*grafana.*"} == 0 or probe_success{job="blackbox", instance=~".*grafana.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+        annotations:
+          summary: "Grafana is down"
+          description: "Grafana instance has been down for more than 2 minutes."
+
+      - alert: NodeExporterDown
+        expr: up{job="node_exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Node Exporter is down on {{ $labels.instance }}"
+          description: "Node Exporter has been unreachable for more than 5 minutes."
+
+      - alert: BlackboxExporterDown
+        expr: up{job="blackbox"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Blackbox Exporter is down"
+          description: "Blackbox Exporter has been unreachable for more than 5 minutes."
+
+      - alert: LokiDown
+        expr: up{job=~".*loki.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+        annotations:
+          summary: "Loki is down"
+          description: "Loki log aggregation instance has been down for more than 2 minutes."
+
+      - alert: PromtailDown
+        expr: up{job=~".*promtail.*"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Promtail is down"
+          description: "Promtail log shipper has been unreachable for more than 5 minutes."
+

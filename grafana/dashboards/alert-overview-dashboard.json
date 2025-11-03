@@ -1,0 +1,275 @@
+{
+  "id": null,
+  "title": "Alert Overview Dashboard",
+  "tags": ["alerts", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Alert Summary",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Active Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Critical Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", severity=\"critical\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Warning Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", severity=\"warning\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "orange", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 1 }
+    },
+    {
+      "type": "stat",
+      "title": "Security Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=\"security\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 1 }
+    },
+    {
+      "type": "row",
+      "title": "Active Alerts Timeline",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Alerts Over Time",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count_over_time(ALERTS{alertstate=\"firing\"}[1m])",
+          "legendFormat": "Active Alerts"
+        },
+        {
+          "expr": "count_over_time(ALERTS{alertstate=\"firing\", severity=\"critical\"}[1m])",
+          "legendFormat": "Critical"
+        },
+        {
+          "expr": "count_over_time(ALERTS{alertstate=\"firing\", severity=\"warning\"}[1m])",
+          "legendFormat": "Warning"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+    },
+    {
+      "type": "row",
+      "title": "Alert Details",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 }
+    },
+    {
+      "type": "table",
+      "title": "Currently Firing Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "list"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "critical": { "text": "Critical", "color": "red" },
+                "warning": { "text": "Warning", "color": "orange" }
+              },
+              "id": "severity"
+            }
+          ]
+        }
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 17 }
+    },
+    {
+      "type": "piechart",
+      "title": "Alerts by Severity",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count by (severity) (ALERTS{alertstate=\"firing\"})",
+          "legendFormat": "{{severity}}"
+        }
+      ],
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 17 }
+    },
+    {
+      "type": "row",
+      "title": "Alert Categories",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+    },
+    {
+      "type": "stat",
+      "title": "System Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=~\"node_exporter|cadvisor\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 28 }
+    },
+    {
+      "type": "stat",
+      "title": "Security Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=\"security\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 28 }
+    },
+    {
+      "type": "stat",
+      "title": "Monitoring Stack Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=\"monitoring\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 28 }
+    },
+    {
+      "type": "stat",
+      "title": "Blackbox Alerts",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertstate=\"firing\", category=~\"blackbox\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 28 }
+    }
+  ]
+}
+
