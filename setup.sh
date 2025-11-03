@@ -30,6 +30,8 @@ required_vars=(
   ALERT_EMAIL_TO
   GF_SECURITY_ADMIN_USER
   GF_SECURITY_ADMIN_PASSWORD
+  LISTEN_PORT
+  USE_SELF_SIGNED_TLS
 )
 
 for var in "${required_vars[@]}"; do
