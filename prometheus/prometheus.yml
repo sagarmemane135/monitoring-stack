@@ -28,9 +28,9 @@ scrape_configs:
 
   # 4. Blackbox internal health probes
   - job_name: blackbox
-    metrics_path: /probe
+    metrics_path: /blackbox/probe
     params:
-      module: [http_2xx]   # from blackbox.yml
+      module: [http_2xx] 
     static_configs:
       - targets:
           # Internal container URLs
