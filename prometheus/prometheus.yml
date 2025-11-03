@@ -21,7 +21,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://prometheus:9090/-/ready
+          - http://prometheus:9090/-/healthy
           - http://grafana:3000/api/health
           - http://cadvisor:8080/metrics
     relabel_configs:
