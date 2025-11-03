@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run this script with sudo: sudo ./setup.sh"
+  exit 1
+fi
+
 echo ""
 echo "========================================"
 echo " 🚀 Starting Monitoring Stack Setup"
@@ -101,7 +107,7 @@ chmod 600 "$ALERTMANAGER_FINAL"
 # -----------------------------
 echo ""
 echo "🐳 Starting Docker Compose stack..."
-docker-compose up -d --build
+sudo docker-compose up -d --build
 
 # -----------------------------
 # 7️⃣  Post-Setup Information
