@@ -21,7 +21,7 @@ scrape_configs:
   # Use host.docker.internal (works cross-platform and portable)
   - job_name: node_exporter
     static_configs:
-      - targets: ['host.docker.internal:9100']
+      - targets: ['node-exporter-proxy:9100']
 
   # 3. cAdvisor (container metrics)
   - job_name: cadvisor

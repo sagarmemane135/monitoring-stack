@@ -101,6 +101,14 @@ services:
       - /sys:/host/sys:ro
       - /:/host:ro
 
+  node-exporter-proxy:
+    image: alpine/socat
+    container_name: node-exporter-proxy
+    restart: unless-stopped
+    command: tcp-listen:9100,fork,reuseaddr tcp-connect:host.docker.internal:9100
+    networks:
+      - monitoring
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
