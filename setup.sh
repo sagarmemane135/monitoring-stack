@@ -112,6 +112,7 @@ fi
 # -----------------------------
 echo "🔑 Configuring Basic Authentication..."
 AUTH_FILE="./nginx/auth/monitoring.htpasswd"
+chmod 644 "${AUTH_FILE}"
 
 # Install apache2-utils if missing (for htpasswd command)
 if ! command -v htpasswd &> /dev/null; then
@@ -121,8 +122,12 @@ if ! command -v htpasswd &> /dev/null; then
 fi
 
 htpasswd -bc "${AUTH_FILE}" "${BASIC_AUTH_USER}" "${BASIC_AUTH_PASSWORD}"
-chmod 640 "${AUTH_FILE}"
-echo "✅ Basic auth file created at ${AUTH_FILE}"
+# Fix permissions for Docker Nginx access
+chmod 644 "${AUTH_FILE}"
+chown root:root "${AUTH_FILE}"
+chmod 755 ./nginx/auth
+
+echo "✅ Basic auth file created and permissions fixed."
 
 # -----------------------------
 # ⚙️ Configure Nginx
