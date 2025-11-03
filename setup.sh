@@ -101,7 +101,7 @@ chmod 600 "$ALERTMANAGER_FINAL"
 # -----------------------------
 echo ""
 echo "🐳 Starting Docker Compose stack..."
-docker compose up -d --build
+docker-compose up -d --build
 
 # -----------------------------
 # 7️⃣  Post-Setup Information
