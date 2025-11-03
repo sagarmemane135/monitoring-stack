@@ -58,6 +58,12 @@ mkdir -p \
   data/prometheus \
   data/alertmanager
 
+# Set ownership for persistent data volumes
+# Grafana runs as user 472
+chown -R 472:472 data/grafana
+# Prometheus and Alertmanager often run as nobody (65534)
+chown -R 65534:65534 data/prometheus data/alertmanager
+
 # Protect sensitive files
 chmod 700 secrets || true
 
@@ -88,7 +94,29 @@ else
 fi
 
 # -----------------------------
-# 5️⃣  Prepare Alertmanager Config
+# 5️⃣  Prepare Nginx Monitoring Config
+# -----------------------------
+echo "⚙️ Preparing Nginx monitoring configuration..."
+MONITORING_CONF_DIR="./nginx/conf.d"
+MONITORING_CONF_FINAL="${MONITORING_CONF_DIR}/monitoring.conf"
+
+# Ensure monitoring.conf is a file, not a directory
+if [ -d "${MONITORING_CONF_FINAL}" ]; then
+  rmdir "${MONITORING_CONF_FINAL}"
+elif [ -f "${MONITORING_CONF_FINAL}" ]; then
+  rm "${MONITORING_CONF_FINAL}"
+fi
+
+if [ "${USE_SELF_SIGNED_TLS}" = "true" ]; then
+  cp "${MONITORING_CONF_DIR}/monitoring.tls.conf" "${MONITORING_CONF_FINAL}"
+  echo "✅ Nginx configured for TLS monitoring."
+else
+  cp "${MONITORING_CONF_DIR}/monitoring.nontls.conf" "${MONITORING_CONF_FINAL}"
+  echo "✅ Nginx configured for non-TLS monitoring."
+fi
+
+# -----------------------------
+# 6️⃣  Prepare Alertmanager Config
 # -----------------------------
 ALERTMANAGER_TEMPLATE="./alertmanager/alertmanager.yml.template"
 ALERTMANAGER_FINAL="./alertmanager/alertmanager.yml"
