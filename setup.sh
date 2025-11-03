@@ -112,7 +112,6 @@ fi
 # -----------------------------
 echo "🔑 Configuring Basic Authentication..."
 AUTH_FILE="./nginx/auth/monitoring.htpasswd"
-chmod 644 "${AUTH_FILE}"
 
 # Install apache2-utils if missing (for htpasswd command)
 if ! command -v htpasswd &> /dev/null; then
