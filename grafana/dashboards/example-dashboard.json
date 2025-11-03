@@ -1,0 +1,18 @@
+{
+  "annotations": {"list": []},
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Instance Up",
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "datasource": "Prometheus"
+    }
+  ],
+  "title": "Example Monitoring",
+  "schemaVersion": 16
+}

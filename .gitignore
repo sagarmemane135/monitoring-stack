@@ -1,0 +1,5 @@
+.env
+data/*
+secrets/*
+!secrets/.gitkeep
+alertmanager/alertmanager.yml

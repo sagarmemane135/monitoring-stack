@@ -1,0 +1,21 @@
+global:
+  smtp_smarthost: '${ALERT_SMTP_SMARTHOST}'
+  smtp_from: '${ALERT_SMTP_FROM}'
+  smtp_auth_username: '${ALERT_SMTP_USER}'
+  smtp_auth_password: '${ALERT_SMTP_PASS}'
+  smtp_require_tls: true
+
+route:
+  receiver: 'email-notifications'
+  group_wait: ${ALERT_GROUP_WAIT}
+  group_interval: ${ALERT_GROUP_INTERVAL}
+  repeat_interval: ${ALERT_REPEAT_INTERVAL}
+  group_by: ['alertname', 'instance']
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: '${ALERT_EMAIL_TO}'
+        send_resolved: true
+        headers:
+          subject: '[Alertmanager] {{ .CommonLabels.alertname }}'
