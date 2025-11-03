@@ -11,42 +11,40 @@ rule_files:
   - "/etc/prometheus/rules.yml"
 
 scrape_configs:
-  # 1. Prometheus self-metrics
+  # 1. Prometheus self-metrics (now under /prometheus path)
   - job_name: prometheus
     static_configs:
       - targets: ['prometheus:9090']
+    metrics_path: /prometheus/metrics
 
-  # 2. Node Exporter (host metrics)
+  # 2. Node Exporter — runs on host network
+  # Use host.docker.internal (works cross-platform and portable)
   - job_name: node_exporter
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['host.docker.internal:9100']
 
   # 3. cAdvisor (container metrics)
   - job_name: cadvisor
     static_configs:
       - targets: ['cadvisor:8080']
 
-  # 4. Blackbox internal health probes
+  # 4. Blackbox (internal service probes)
   - job_name: blackbox
     metrics_path: /blackbox/probe
     params:
-      module: [http_2xx] 
+      module: [http_2xx]
     static_configs:
       - targets:
-          # Internal container URLs
           - http://prometheus:9090/prometheus/-/healthy
           - http://grafana:3000/api/health
           - http://cadvisor:8080/metrics
-          # Optional: check external endpoints via NGINX (443 or subpaths)
-          # - https://your-domain.com/prometheus/-/healthy
-          # - https://your-domain.com/grafana/api/health
     relabel_configs:
-      # Pass target to Blackbox Exporter
+      # Map the original target to a 'target' parameter for blackbox
       - source_labels: [__address__]
         target_label: __param_target
-      # Set instance label for Prometheus UI
+      # Show the instance in Prometheus UI
       - source_labels: [__param_target]
         target_label: instance
-      # Tell Prometheus to scrape Blackbox Exporter
+      # Tell Prometheus to scrape the blackbox exporter itself
       - target_label: __address__
         replacement: blackbox-exporter:9115
